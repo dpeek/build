@@ -33,6 +33,8 @@ class Project
 						line = '';
 					}
 				}
+				if (process.exitCode() != 0)
+					throw new Error('Could not clone dependency <id>$name</id> from <path>${dependency.url}</path>');
 			}
 
 			var sub = new Repository(path);
