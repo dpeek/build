@@ -45,8 +45,8 @@ class Cordova
 		for (plugin in plugins)
 		{
 			if (Cli.exists('$path/plugins/${plugin.id}')) continue;
-			var path = plugin.path == null ? plugin.id : plugin.path;
-			var args = ['plugin', 'add', path];
+			var pluginPath = plugin.path == null ? plugin.id : plugin.path;
+			var args = ['plugin', 'add', pluginPath];
 			if (plugin.args != null)
 				args = args.concat(plugin.args);
 			cordova(path, args);
