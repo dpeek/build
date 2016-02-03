@@ -13,7 +13,7 @@ class Target
 		var name = args[0];
 
 		Log.info('<info>target</info> $name');
-		var debug = config.getValue('define.debug') == true;
+		var debug = config.getValue('define.debug', false);
 
 		var targets = config.getValue('targets', new Array<Dynamic>());
 		var targetsByName = new Map();
