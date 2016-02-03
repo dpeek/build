@@ -1,6 +1,5 @@
 package build;
 
-// @:build(build.ConfigMacro.build())
 class Config
 {
 	static var TOKEN = ~/\${([^}]+)}/g;
