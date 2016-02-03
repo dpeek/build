@@ -1,1 +1,11 @@
-{}
+{
+  "name": "build",
+  "url" : "https://github.com/dpeek/build",
+  "license": "MIT",
+  "tags": ["build", "cli"],
+  "description": "Haxe build tool.",
+  "version": "0.1.0",
+  "releasenote": "First release",
+  "contributors": ["dpeek"],
+  "dependencies": {}
+}
