@@ -13,7 +13,11 @@ class Run
 
 	public static function main()
 	{
-		try run(Sys.args()) catch (e:Error) Log.error(e);
+		try run(Sys.args()) catch (e:Error)
+		{
+			Log.error(e);
+			Sys.exit(1);
+		}
 	}
 
 	static function run(args:Array<String>)
