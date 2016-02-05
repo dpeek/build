@@ -130,7 +130,7 @@ class Cli
 	{
 		Assert.argumentNotNull(path, 'path');
 		Assert.isTrue(exists(path), '$ERROR_CWD\n$REASON_PATH_NOT_EXIST', {path: path, fullPath: fullPath(path)});
-		Assert.isTrue(isDirectory(path), '$ERROR_CWD\n$REASON_PATH_NOT_DIRECTORY', {path: path, fullPath: fullPath(path)});
+		// Assert.isTrue(isDirectory(path), '$ERROR_CWD\n$REASON_PATH_NOT_DIRECTORY', {path: path, fullPath: fullPath(path)});
 		return Sys.setCwd(path);
 	}
 

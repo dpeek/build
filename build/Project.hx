@@ -7,6 +7,14 @@ class Project
 	public static function validate(config:Config)
 	{
 		if (config.getValue('define.noValidate', false)) return;
+		var isCI = config.getValue('define.ci', false);
+
+		var localDependencyPath = 'lib';
+		Cli.createDirectory(localDependencyPath);
+
+		var home = Cli.userDirectory;
+		var globalDependencyPath = '$home/.hxbuild/lib';
+		if (isCI) Cli.createDirectory(globalDependencyPath);
 
 		if (validated) return;
 		validated = true;
@@ -16,13 +24,17 @@ class Project
 		for (dependency in dependencies)
 		{
 			var name = dependency.name;
-			var path = 'lib/$name';
+			var path = '$localDependencyPath/$name';
+			var checkoutPath = isCI ? '$globalDependencyPath/$name' : path;
+			var fresh = false;
 
-			if (!Cli.exists(path))
+			if (!Cli.exists(checkoutPath))
 			{
-				var process = new sys.io.Process('git', ['clone', dependency.url, path, '--progress']);
+				fresh = true;
+				Log.info('<action>git</action> clone <path>${dependency.url}</path> into <path>$checkoutPath</path>');
+				var process = new sys.io.Process('git', ['clone', dependency.url, checkoutPath, '--progress']);
 				var line = '';
-				while (true)
+				while (!isCI && true)
 				{
 					var byte = 0;
 					try byte = process.stderr.readByte() catch (e:Dynamic) break;
@@ -36,9 +48,24 @@ class Project
 				if (process.exitCode() != 0)
 					throw new Error('Could not clone dependency <id>$name</id> from <path>${dependency.url}</path>');
 			}
+			if (isCI && !Cli.exists(path))
+				Cli.cmd('ln', ['-sfF', checkoutPath, Cli.fullPath(path)]);
 
 			var sub = new Repository(path);
-			sub.checkout(dependency.ref);
+			var ref = dependency.ref;
+			if (sub.isValid(ref))
+			{
+				Log.info('<path>$path</path> <green>$ref</green>');
+			}
+			else
+			{
+				if (!fresh)
+				{
+					var currentRef = sub.isStable ? sub.tag : sub.hash;
+					Log.info('<path>$path</path> <warn>$currentRef => $ref</warn>');
+				}
+				sub.checkout(ref);
+			}
 
 			var infos = ['$path/haxelib.json', '$path/src/haxelib.json'].filter(Cli.exists).map(Cli.fullPath);
 			if (infos.length > 0)

@@ -39,7 +39,7 @@ class Target
 		FileSystem.createDirectory(outputPath);
 		if (!config.getValue('define.noHaxe', false))
 		{
-			var haxeTargets = target.getValue('haxeTargets');
+			var haxeTargets = target.getValue('haxeTargets', {});
 			for (name in Reflect.fields(haxeTargets))
 			{
 				var targetPath = null;
