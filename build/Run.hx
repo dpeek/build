@@ -30,10 +30,8 @@ class Run
 		var project = new Repository('.');
 		if (Cli.exists('.git'))
 		{
-			config.setValues({git:{
-				revision:project.hash,
-				version:project.tag
-			}});
+			config.setValue('git.revision', project.hash);
+			config.setValue('git.version', project.tag);
 		}
 
 		args = args.filter(function (arg) {
@@ -87,6 +85,11 @@ class Run
 				Target.run(config, args);
 			case 'status':
 				Project.status(config, args);
+			case 'print':
+				Sys.println(Json.stringify(config.getValue(args.shift()), null, '  '));
+			case 'format':
+				var formatted = Json.stringify(untyped config.config, null, '  ');
+				Sys.println(formatted);
 			case action:
 				if (actions.exists(action)) actions.get(action)(config, args);
 				else throw new Error('Unknown action $action');

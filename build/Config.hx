@@ -6,39 +6,49 @@ class Config
 
 	public function new() {}
 
-	public function setValues(fromConfig:Dynamic)
+	var config = new OrderedMap();
+
+	public function setValues(fromConfig:OrderedMap)
 	{
-		Util.mergeFields(fromConfig, this);
+		Util.mergeFields(fromConfig, config);
 	}
 
-	public function setValue(path:String, value:Dynamic)
+	public function setValue(keyPath:String, value:Dynamic)
 	{
-		var parts = path.split('.');
-		var parent = this;
-		while (parts.length > 1)
+		var keys = keyPath.split('.');
+		var parent = config;
+		while (keys.length > 1)
 		{
-			var part = parts.shift();
-			if (!Reflect.hasField(parent, part))
-				Reflect.setField(parent, part, {});
-			parent = Reflect.field(parent, part);
+			var key = keys.shift();
+			if (!parent.exists(key))
+				parent.set(key, new OrderedMap());
+			parent = parent.get(key);
+			if (!Std.is(parent, OrderedMap))
+				throw new Error('Cannot set $keyPath, value for $key is not an object');
 		}
-		Reflect.setField(parent, parts[0], value);
+		parent.set(keys[0], value);
 	}
 
-	public function getValue<T>(path:String, ?orUseValue:T):T
+	public function getValue<T>(keyPath:String, ?orUseValue:T):T
 	{
-		var parts = path.split('.');
-		var value = this;
-		while (parts.length > 0)
+		var keys = keyPath.split('.');
+		var value = config;
+		while (keys.length > 0)
 		{
-			var part = parts.shift();
-			value = Reflect.field(value, part);
-			if (value == null) break;
+			var key = keys.shift();
+			if (!value.exists(key))
+			{
+				value = null;
+				break;
+			}
+			value = value.get(key);
+			if (keys.length > 1 && !Std.is(value, OrderedMap))
+				throw new Error('Cannot get $keyPath, value for $key is not an object');
 		}
 		if (value == null)
 		{
 			if (orUseValue == null)
-				throw new Error('Value $path not found in config and no default provided.');
+				throw new Error('Value $keyPath not found in config and no default provided.');
 			return orUseValue;
 		}
 		return resolve(value);
@@ -65,12 +75,14 @@ class Config
 
 	public function clone()
 	{
-		return Reflect.copy(this);
+		var clone = new Config();
+		clone.config = config.clone();
+		return clone;
 	}
 
 	public function setScheme(name:String)
 	{
-		setValues(getValue('scheme.$name', {}));
+		setValues(getValue('scheme.$name', new OrderedMap()));
 	}
 
 	public function resolve(value:Dynamic):Dynamic
@@ -82,6 +94,14 @@ class Config
 		else if (Std.is(value, Array))
 		{
 			return value.map(resolve);
+		}
+		else if (Std.is(value, OrderedMap))
+		{
+			var map = (value:OrderedMap);
+			var resolved = new OrderedMap();
+			for (key in map.keys())
+				resolved.set(key, resolve(map.get(key)));
+			return resolved;
 		}
 		else if (Type.typeof(value) == TObject)
 		{

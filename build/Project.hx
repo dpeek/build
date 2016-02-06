@@ -20,10 +20,13 @@ class Project
 		validated = true;
 
 		Log.info('<info>validate</info>');
-		var dependencies = config.getValue('dependencies', new Array<Dependency>());
+		var dependencies = config.getValue('dependencies', new Array<OrderedMap>());
 		for (dependency in dependencies)
 		{
-			var name = dependency.name;
+			var name = dependency.get('name');
+			var url = dependency.get('url');
+			var ref = dependency.get('ref');
+
 			var path = '$localDependencyPath/$name';
 			var checkoutPath = isCI ? '$globalDependencyPath/$name' : path;
 			var fresh = false;
@@ -31,8 +34,8 @@ class Project
 			if (!Cli.exists(checkoutPath))
 			{
 				fresh = true;
-				Log.info('<action>git</action> clone <path>${dependency.url}</path> into <path>$checkoutPath</path>');
-				var process = new sys.io.Process('git', ['clone', dependency.url, checkoutPath, '--progress']);
+				Log.info('<action>git</action> clone <path>$url</path> into <path>$checkoutPath</path>');
+				var process = new sys.io.Process('git', ['clone', url, checkoutPath, '--progress']);
 				var line = '';
 				while (!isCI && true)
 				{
@@ -46,13 +49,12 @@ class Project
 					}
 				}
 				if (process.exitCode() != 0)
-					throw new Error('Could not clone dependency <id>$name</id> from <path>${dependency.url}</path>');
+					throw new Error('Could not clone dependency <id>$name</id> from <path>$url</path>');
 			}
 			if (isCI && !Cli.exists(path))
 				Cli.cmd('ln', ['-sfF', checkoutPath, Cli.fullPath(path)]);
 
 			var sub = new Repository(path);
-			var ref = dependency.ref;
 			if (sub.isValid(ref))
 			{
 				Log.info('<path>$path</path> <green>$ref</green>');
@@ -71,7 +73,7 @@ class Project
 			if (infos.length > 0)
 			{
 				var info = Cli.getJson(infos[0]);
-				var name = info.name;
+				var name = info.get('name');
 				Cli.createDirectory('.haxelib/$name');
 				Cli.saveContent('.haxelib/$name/.dev', haxe.io.Path.directory(infos[0]));
 			}
@@ -81,15 +83,16 @@ class Project
 	public static function status(config:Config, args:Array<String>)
 	{
 		Log.info('<info>status</info>');
-		var dependencies = config.getValue('dependencies', new Array<Dependency>());
+		var dependencies = config.getValue('dependencies', new Array<OrderedMap>());
 		for (dependency in dependencies)
 		{
-			var name = dependency.name;
+			var name = dependency.get('name');
+			var ref = dependency.get('ref');
 			var path = 'lib/$name';
 			var sub = new Repository(path);
 			var version = sub.hash;
 
-			var isValid = sub.isValid(dependency.ref);
+			var isValid = sub.isValid(ref);
 			var state = 'green';
 
 			if (!isValid || !sub.isClean) state = 'red';

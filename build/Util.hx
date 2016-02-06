@@ -29,35 +29,31 @@ class Util
 	// 	return object;
 	// }
 
-	public static function mergeFields(fromObject:Dynamic, intoObject:Dynamic):Dynamic
+	public static function mergeFields(fromObject:OrderedMap, intoObject:OrderedMap):OrderedMap
 	{
-		for (field in Reflect.fields(fromObject))
+		for (key in fromObject.keys())
 		{
-			var fromValue:Dynamic = Reflect.field(fromObject, field);
-			var toValue:Dynamic = Reflect.field(intoObject, field);
+			var fromValue:Dynamic = fromObject.get(key);
+			var toValue:Dynamic = intoObject.get(key);
 
 			if (Std.is(fromValue, Array) && Std.is(toValue, Array))
 			{
 				var fromArray:Array<Dynamic> = fromValue;
 				var toArray:Array<Dynamic> = toValue;
-				Reflect.setField(intoObject, field, fromArray.concat(toArray));
+				intoObject.set(key, fromArray.concat(toArray));
 			}
-			else if (Type.typeof(fromValue) == TObject)
+			else if (Std.is(fromValue, OrderedMap))
 			{
 				if (toValue == null)
 				{
-					toValue = {};
-					Reflect.setField(intoObject, field, toValue);
-				}
-				else
-				{
-					// prevent overwrite
+					toValue = new OrderedMap();
+					intoObject.set(key, toValue);
 				}
 				mergeFields(fromValue, toValue);
 			}
 			else
 			{
-				Reflect.setField(intoObject, field, fromValue);
+				intoObject.set(key, fromValue);
 			}
 		}
 		return intoObject;

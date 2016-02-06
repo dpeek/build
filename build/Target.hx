@@ -1,6 +1,5 @@
 package build;
 
-import haxe.Json;
 import haxe.io.Path;
 
 import sys.FileSystem;
@@ -11,23 +10,21 @@ class Target
 	public static function run(config:Config, args:Array<String>)
 	{
 		var name = args[0];
-
-		Log.info('<info>target</info> $name');
 		var debug = config.getValue('define.debug', false);
 
-		var targets = config.getValue('targets', new Array<Dynamic>());
+		var targets = config.getValue('targets', new Array<OrderedMap>());
 		var targetsByName = new Map();
 		for (target in targets)
-			targetsByName.set(target.name, target);
+			targetsByName.set(target.get('name'), target);
 
 		if (!targetsByName.exists(name))
 			throw new Error('There is no target named "$name"');
 
 		var targetConfig = targetsByName.get(name);
 		var targetConfigs = [targetConfig];
-		while (targetConfig.parent != null)
+		while (targetConfig.exists('parent'))
 		{
-			targetConfig = targetsByName.get(targetConfig.parent);
+			targetConfig = targetsByName.get(targetConfig.get('parent'));
 			targetConfigs.unshift(targetConfig);
 		}
 
@@ -35,12 +32,18 @@ class Target
 		for (targetConfig in targetConfigs)
 			target.setValues(targetConfig);
 
+		var before = target.getValue('before', new Array<Array<String>>());
+		for (args in before) Run.execute(config, args);
+
+		var version = config.getValue('app.version');
+		Log.info('<info>target</info> $name $version');
+
 		var outputPath = target.getValue('path');
 		FileSystem.createDirectory(outputPath);
 		if (!config.getValue('define.noHaxe', false))
 		{
-			var haxeTargets = target.getValue('haxeTargets', {});
-			for (name in Reflect.fields(haxeTargets))
+			var haxeTargets = target.getValue('haxeTargets', new OrderedMap());
+			for (name in haxeTargets.keys())
 			{
 				var targetPath = null;
 				var rawArgs = target.getValue('haxeTargets.$name').split(' ');
@@ -92,17 +95,32 @@ class Target
 				replaceTokens('$outputPath/$template', config);
 		}
 
-		var variants = target.getValue('variants', new Array<{input:String, output:String, schemes:Array<String>}>());
+		var variants = target.getValue('variants', new Array<OrderedMap>());
 		if (variants.length > 0)
 		{
 			Log.info('<action>process</action> variants');
 			for (variant in variants)
 			{
+				var input = variant.get('input');
+				var output = outputPath + '/' + variant.get('output');
+				var schemes:Array<String> = variant.get('schemes');
+
 				var variantConfig = config.clone();
-				for (scheme in variant.schemes) variantConfig.setScheme(scheme);
-				var output = '$outputPath/${variant.output}';
-				Cli.copyFile(variant.input, output);
-				replaceTokens(output, variantConfig);
+				for (scheme in schemes)
+					variantConfig.setScheme(scheme);
+
+				if (Path.extension(output) == 'json')
+				{
+					var json = Cli.getJson(input);
+					json = variantConfig.resolve(json);
+					Cli.saveContent(output, Json.stringify(json, null, '\t') + '\n');
+				}
+				else
+				{
+					Cli.copyFile(input, output);
+					replaceTokens(output, variantConfig);
+				}
+
 			}
 		}
 
@@ -190,10 +208,9 @@ class Target
 				parts:parts
 			};
 			manifest.push(info);
-
 			Cli.copy(file.sourcePath, '$path/asset/$localPath');
 		}
-		Cli.saveContent('$path/asset/manifest.json', haxe.Json.stringify(manifest));
+		Cli.saveContent('$path/asset/manifest.json', Json.stringify(manifest));
 	}
 }
 

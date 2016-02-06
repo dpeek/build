@@ -152,7 +152,7 @@ class Cli
 		var json = getContent(path);
 		try
 		{
-			return haxe.Json.parse(json);
+			return Json.parse(json);
 		}
 		catch (e:Dynamic)
 		{

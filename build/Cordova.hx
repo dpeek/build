@@ -31,11 +31,15 @@ class Cordova
 	{
 		var platform = config.getValue('cordova.platform');
 		var path = config.getValue('cordova.path');
-
-		var plugins = config.getValue('cordova.plugins', new Array<{id:String, ?path:String, ?args:Array<String>}>());
-		for (plugin in plugins)
-			if (plugin.path != null && Cli.exists(plugin.path))
-				plugin.path = Cli.fullPath(plugin.path);
+		var pluginConfigs = config.getValue('cordova.plugins', new Array<OrderedMap>());
+		var plugins = pluginConfigs.map(function(plugin){
+			var id = plugin.get('id');
+			var args = plugin.get('args');
+			var path = plugin.get('path');
+			if (path != null && Cli.exists(path))
+				path = Cli.fullPath(path);
+			return {id:id, path:path, args:args};
+		});
 
 		var platformPath = '$path/platforms/$platform';
 
