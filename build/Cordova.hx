@@ -27,8 +27,9 @@ class Cordova
 		var debug = config.getValue('define.debug', false) ? 'debug' : 'release';
 		var emulator = config.getValue('define.emulator', false) ? 'emulator' : 'device';
 		var prepare = config.getValue('define.prepare', false);
+		var action = config.getValue('define.run', false) ? 'run' : 'build';
 		if (prepare) cordova(path, ['prepare', platform]);
-		else cordova(path, ['build', platform, '--$debug', '--$emulator']);
+		else cordova(path, [action, platform, '--$debug', '--$emulator']);
 	}
 
 	static function prepare(config:Config)
