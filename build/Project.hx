@@ -119,7 +119,6 @@ class Project
 	public static function clean(config:Config, args:Array<String>)
 	{
 		Log.info('<info>clean</info>');
-		if (Cli.exists('bin'))
-			Cli.deleteDirectoryRecursive('bin');
+		Cli.cmd('rm', ['-rf', 'bin']);
 	}
 }
