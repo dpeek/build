@@ -24,7 +24,11 @@ class Cordova
 	{
 		var platform = config.getValue('cordova.platform');
 		var path = config.getValue('cordova.path');
-		cordova(path, ['build', platform, '-device']);
+		var debug = config.getValue('define.debug', false) ? 'debug' : 'release';
+		var emulator = config.getValue('define.emulator', false) ? 'emulator' : 'device';
+		var prepare = config.getValue('define.prepare', false);
+		if (prepare) cordova(path, ['prepare', platform]);
+		else cordova(path, ['build', platform, '--$debug', '--$emulator']);
 	}
 
 	static function prepare(config:Config)
