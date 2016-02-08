@@ -173,13 +173,18 @@ class Target
 
 	static function minify(path:String)
 	{
-		var bin = 'bin/vendor/closure/compiler.jar';
+		var home = Cli.userDirectory;
+		var bin = '$home/.buildhx/tool/closure/compiler.jar';
 		if (!FileSystem.exists(bin))
 		{
+			var dir = haxe.io.Path.directory(bin);
+			Cli.createDirectory(dir);
+
+			var zipPath = '$home/.buildhx/tool/closure.zip';
 			var http = new haxe.Http('http://dl.google.com/closure-compiler/compiler-latest.zip');
-			Cli.download(http, 'closure.zip');
-			Cli.unzip('closure.zip', 'bin/vendor/closure');
-			Cli.deleteFile('closure.zip');
+			Cli.download(http, zipPath);
+			Cli.unzip(zipPath, dir);
+			Cli.deleteFile(zipPath);
 		}
 
 		var outputPath = Path.withExtension(path, 'min.js');
