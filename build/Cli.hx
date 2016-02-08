@@ -109,8 +109,9 @@ class Cli
 
 	public static function isLink(path:String):Bool
 	{
-		Assert.argumentNotNull(path, 'path');
-		return new Process('test', ['-L', path]).exitCode() == 0;
+		return false;
+		// Assert.argumentNotNull(path, 'path');
+		// return new Process('test', ['-L', path]).exitCode() == 0;
 	}
 
 	public static function isDirectoryEmpty(path:String):Bool
