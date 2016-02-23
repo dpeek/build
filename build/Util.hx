@@ -40,7 +40,7 @@ class Util
 			{
 				var fromArray:Array<Dynamic> = fromValue;
 				var toArray:Array<Dynamic> = toValue;
-				intoObject.set(key, fromArray.concat(toArray));
+				intoObject.set(key, toArray.concat(fromArray));
 			}
 			else if (Std.is(fromValue, OrderedMap))
 			{

@@ -34,6 +34,7 @@ class Cordova
 
 	static function prepare(config:Config)
 	{
+		var refresh = config.getValue('define.refreshPlugin', 'none');
 		var platform = config.getValue('cordova.platform');
 		var path = config.getValue('cordova.path');
 		var pluginConfigs = config.getValue('cordova.plugins', new Array<OrderedMap>());
@@ -53,8 +54,11 @@ class Cordova
 
 		for (plugin in plugins)
 		{
-			if (Cli.exists('$path/plugins/${plugin.id}')) continue;
+			var exists = Cli.exists('$path/plugins/${plugin.id}');
+			var shouldRefresh = refresh == 'all' || refresh == plugin.id;
+			if (exists && !shouldRefresh) continue;
 			var pluginPath = plugin.path == null ? plugin.id : plugin.path;
+			if (exists) cordova(path, ['plugin', 'remove', plugin.id]);
 			var args = ['plugin', 'add', pluginPath];
 			if (plugin.args != null)
 				args = args.concat(plugin.args);

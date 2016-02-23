@@ -11,16 +11,16 @@ class Run
 		actions.set(action, handler);
 	}
 
-	public static function main()
+	public static function main(onConfigure:Config -> Void)
 	{
-		try run(Sys.args()) catch (e:Error)
+		try run(Sys.args(), onConfigure) catch (e:Error)
 		{
 			Log.error(e);
 			Sys.exit(1);
 		}
 	}
 
-	static function run(args:Array<String>)
+	static function run(args:Array<String>, onConfigure:Config -> Void)
 	{
 		var config = new Config();
 
@@ -60,6 +60,9 @@ class Run
 			case 'verbose': Verbose;
 			default: Info;
 		}
+
+		if (onConfigure != null)
+			onConfigure(config);
 
 		if (config.getValue('define.clean', false))
 			execute(config, ['clean']);
