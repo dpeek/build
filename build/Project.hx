@@ -9,7 +9,7 @@ class Project
 		if (config.getValue('define.noValidate', false)) return;
 		var isCI = config.getValue('define.ci', false);
 
-		var localDependencyPath = 'lib';
+		var localDependencyPath = config.getValue('app.dependencyPath', 'lib');
 		Cli.createDirectory(localDependencyPath);
 
 		var home = Cli.userDirectory;

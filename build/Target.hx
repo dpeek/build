@@ -38,11 +38,14 @@ class Target
 		var version = config.getValue('app.version');
 		Log.info('<info>target</info> $name $version');
 
+		var haxeFilter = config.getValue('define.haxeFilter', '');
+
 		var outputPath = target.getValue('path');
 		FileSystem.createDirectory(outputPath);
 		if (!config.getValue('define.noHaxe', false))
 		{
 			var haxeTargets = target.getValue('haxeTargets', new OrderedMap());
+			Log.info(haxeFilter);
 			for (name in haxeTargets.keys())
 			{
 				var targetPath = null;
@@ -61,6 +64,7 @@ class Target
 							args.push(arg);
 					}
 				}
+				if (haxeFilter != '' && targetPath.indexOf(haxeFilter) == -1) continue;
 
 				if (debug) args.push('-debug');
 				else args.push('--no-traces');

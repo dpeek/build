@@ -47,7 +47,23 @@ class OrderedMap implements IMap<String, Dynamic>
 
 	public function toString()
 	{
-		return 'OrderedMap';
+		var buf = new StringBuf();
+		buf.add('{');
+		if (_keys.length > 0)
+		{
+			for (i in 0..._keys.length)
+			{
+				var key = _keys[i];
+				var value = Std.string(_values[i]);
+				buf.add('\n\t"$key": $value' + (i < _keys.length - 1 ? ',' : ''));
+			}
+			buf.add('\n}');
+		}
+		else
+		{
+			buf.add('}');
+		}
+		return buf.toString();
 	}
 
 	public function clone()
