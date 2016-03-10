@@ -6,36 +6,37 @@ class Project
 
 	public static function validate(config:Config)
 	{
+		var dependencies = config.getValue('dependencies', new Array<OrderedMap>());
+		var dependencyPath = config.getValue('app.dependencyPath', 'lib');
+
+		for (dependency in dependencies)
+		{
+			var name = dependency.get('name');
+			config.setValue('lib.$name.path', '$dependencyPath/$name');
+		}
+
 		if (config.getValue('define.noValidate', false)) return;
 		var isCI = config.getValue('define.ci', false);
-
-		var localDependencyPath = config.getValue('app.dependencyPath', 'lib');
-		Cli.createDirectory(localDependencyPath);
-
-		var home = Cli.userDirectory;
-		var globalDependencyPath = '$home/.hxbuild/lib';
-		if (isCI) Cli.createDirectory(globalDependencyPath);
+		Cli.createDirectory(dependencyPath);
 
 		if (validated) return;
 		validated = true;
 
 		Log.info('<info>validate</info>');
-		var dependencies = config.getValue('dependencies', new Array<OrderedMap>());
 		for (dependency in dependencies)
 		{
 			var name = dependency.get('name');
 			var url = dependency.get('url');
 			var ref = dependency.get('ref');
 
-			var path = '$localDependencyPath/$name';
-			var checkoutPath = isCI ? '$globalDependencyPath/$name' : path;
+			var path = '$dependencyPath/$name';
 			var fresh = false;
 
-			if (!Cli.exists(checkoutPath))
+			if (!Cli.exists(path))
 			{
 				fresh = true;
-				Log.info('<action>git</action> clone <path>$url</path> into <path>$checkoutPath</path>');
-				var process = new sys.io.Process('git', ['clone', url, checkoutPath, '--progress']);
+				Log.info('<action>git</action> clone <path>$url</path> into <path>$path</path>');
+				var process = new sys.io.Process('git', ['clone', url, path, '--progress']);
 				var line = '';
 				while (!isCI && true)
 				{
@@ -51,44 +52,49 @@ class Project
 				if (process.exitCode() != 0)
 					throw new Error('Could not clone dependency <id>$name</id> from <path>$url</path>');
 			}
-			if (isCI && !Cli.exists(path))
-				Cli.cmd('ln', ['-sfF', checkoutPath, Cli.fullPath(path)]);
 
 			var sub = new Repository(path);
 			if (sub.isValid(ref))
 			{
-				Log.info('<path>$path</path> <green>$ref</green>');
+				Log.info('$name <green>$ref</green>');
 			}
 			else
 			{
 				if (!fresh)
 				{
 					var currentRef = sub.isStable ? sub.tag : sub.hash;
-					Log.info('<path>$path</path> <warn>$currentRef => $ref</warn>');
+					Log.info('$name <warn>$currentRef => $ref</warn>');
 				}
 				sub.checkout(ref);
 			}
+			addHaxelib(path);
+		}
+		addHaxelib('.');
+	}
 
-			var infos = ['$path/haxelib.json', '$path/src/haxelib.json'].filter(Cli.exists).map(Cli.fullPath);
-			if (infos.length > 0)
-			{
-				var info = Cli.getJson(infos[0]);
-				var name = info.get('name');
-				Cli.createDirectory('.haxelib/$name');
-				Cli.saveContent('.haxelib/$name/.dev', haxe.io.Path.directory(infos[0]));
-			}
+	static function addHaxelib(path:String)
+	{
+		var infos = ['$path/haxelib.json', '$path/src/haxelib.json'].filter(Cli.exists);
+		if (infos.length > 0)
+		{
+			var info = Cli.getJson(infos[0]);
+			var name = info.get('name');
+			Cli.createDirectory('.haxelib/$name');
+			Cli.saveContent('.haxelib/$name/.dev', haxe.io.Path.directory(infos[0]));
 		}
 	}
 
 	public static function status(config:Config, args:Array<String>)
 	{
+		var dependencyPath = config.getValue('app.dependencyPath', 'lib');
+
 		Log.info('<info>status</info>');
 		var dependencies = config.getValue('dependencies', new Array<OrderedMap>());
 		for (dependency in dependencies)
 		{
 			var name = dependency.get('name');
 			var ref = dependency.get('ref');
-			var path = 'lib/$name';
+			var path = '$dependencyPath/$name';
 			var sub = new Repository(path);
 			var version = sub.hash;
 
@@ -105,7 +111,7 @@ class Project
 					version += '+' + sub.commitsAheadOfTag;
 			}
 
-			Log.info('<path>$path</path> <$state>$version</$state>');
+			Log.info('$name <$state>$version</$state>');
 
 			if (!sub.isClean)
 			{

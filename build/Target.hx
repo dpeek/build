@@ -45,7 +45,6 @@ class Target
 		if (!config.getValue('define.noHaxe', false))
 		{
 			var haxeTargets = target.getValue('haxeTargets', new OrderedMap());
-			Log.info(haxeFilter);
 			for (name in haxeTargets.keys())
 			{
 				var targetPath = null;
@@ -141,7 +140,7 @@ class Target
 		}
 		catch (e:Dynamic)
 		{
-			throw new Error('Unable to replace token in <path>$path</path>');
+			throw new Error('Unable to replace token in <path>$path</path>\n$e');
 		}
 		Cli.saveContent(path, content);
 	}

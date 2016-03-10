@@ -24,8 +24,15 @@ class Run
 	{
 		var config = new Config();
 
+		var home = Cli.userDirectory;
+		if (Cli.exists('$home/.hxbuild/build.json'))
+			config.setValues(Cli.getJson('$home/.hxbuild/build.json'));
+
 		if (Cli.exists('build.json'))
 			config.setValues(Cli.getJson('build.json'));
+
+		if (Cli.exists('user.json'))
+			config.setValues(Cli.getJson('user.json'));
 
 		var project = new Repository('.');
 		if (Cli.exists('.git'))
