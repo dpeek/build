@@ -43,7 +43,7 @@ class Cordova
 			var args = plugin.get('args');
 			var path = plugin.get('path');
 			if (path != null && Cli.exists(path))
-				path = Cli.fullPath(path);
+				path = sys.FileSystem.fullPath(path);
 			return {id:id, path:path, args:args};
 		});
 
