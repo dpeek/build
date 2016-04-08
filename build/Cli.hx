@@ -505,6 +505,8 @@ class Cli
 		Assert.argumentNotNull(newPath, 'newPath');
 		Assert.isTrue(exists(path), '$ERROR_RENAME\n$REASON_PATH_NOT_EXIST', {path:path, newPath:newPath});
 		Assert.isTrue(!exists(newPath) || isFile(newPath), '$ERROR_RENAME\n$REASON_PATH_EXISTS_AND_NOT_FILE', {path:path, newPath:newPath, fullPath:fullPath(newPath)});
+		if (exists(newPath))
+			deleteFile(newPath);
 		createParentDirectory(newPath);
 		Log.verbose('<action>rename</action> <path>$path</path> to <path>$newPath</path>');
 		return FileSystem.rename(path, newPath);
