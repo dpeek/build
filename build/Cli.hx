@@ -45,7 +45,7 @@ class Cli
 	public static var isWindows(default, null):Bool = Sys.systemName() == "Windows";
 
 	/**
-		Is the application currently running on a Win32 system.
+		Is the application currently running on a Darwin system.
 	**/
 	public static var isMac(default, null):Bool = Sys.systemName() == "Mac";
 
@@ -55,12 +55,12 @@ class Cli
 	public static var isLinux(default, null):Bool = Sys.systemName() == "Linux";
 
 	/**
-		Is the application currently running on a unix like system (Mac or Linux)
+		Is the application currently running on a Unix-like system (Mac or Linux)
 	**/
 	public static var isUnix(default, null):Bool = isMac || isLinux;
 
 	/**
-		Is the application running under cygwin.
+		Is the application running under Cygwin.
 	**/
 	public static var isCygwin(default, null):Bool = isWindows && Sys.getEnv("QMAKESPEC") != null && Sys.getEnv("QMAKESPEC").indexOf("cygwin") > -1;
 
@@ -70,8 +70,8 @@ class Cli
 	public static var userDirectory(default, null):String = isWindows ? Sys.getEnv("USERPROFILE") : Sys.getEnv("HOME");
 
 	/**
-	The system temp directory.
-	*/
+		The system temp directory.
+	**/
 	public static var tempDirectory(default, null):String =
 	{
 		if (isWindows) Sys.getEnv("TEMP");
