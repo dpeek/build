@@ -289,6 +289,20 @@ class Cli
 		});
 		return StringTools.trim(output);
 	}
+	
+	public static function cmdCompat(cmd:String, args:Array<String>, ?options:CmdOptions)
+	{
+		if (options == null) options = {};
+		var owd = Sys.getCwd();
+		if (options.workingDirectory != null)
+			setCwd(options.workingDirectory);
+		if (options.logCommand) Log.info('<action>$cmd</action> ' + args.join(' '));
+		else Log.verbose('<action>$cmd</action> ' + args.join(' '));
+		var code = Sys.command(cmd, args);
+		Sys.setCwd(owd);
+		if (code != 0)
+			throw new Error('Process <id>$cmd</id> exited with code <const>$code</const>');
+	}
 
 	public static function getExitCode(cmd:String, args:Array<String>)
 	{
