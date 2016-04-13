@@ -8,7 +8,7 @@ class Cordova
 {
 	static function cordova(path:String, args:Array<String>)
 	{
-		Cli.cmd('cordova', args, {logCommand:true, logOutput:true, workingDirectory:path});
+		Cli.cmdCompat('cordova', args, {logCommand:true, logOutput:true, workingDirectory:path});
 	}
 
 	public static function run(config:Config, args:Array<String>)
