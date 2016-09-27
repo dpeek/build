@@ -45,7 +45,7 @@ class Cli
 	public static var isWindows(default, null):Bool = Sys.systemName() == "Windows";
 
 	/**
-		Is the application currently running on a Win32 system.
+		Is the application currently running on a Darwin system.
 	**/
 	public static var isMac(default, null):Bool = Sys.systemName() == "Mac";
 
@@ -55,12 +55,12 @@ class Cli
 	public static var isLinux(default, null):Bool = Sys.systemName() == "Linux";
 
 	/**
-		Is the application currently running on a unix like system (Mac or Linux)
+		Is the application currently running on a Unix-like system (Mac or Linux)
 	**/
 	public static var isUnix(default, null):Bool = isMac || isLinux;
 
 	/**
-		Is the application running under cygwin.
+		Is the application running under Cygwin.
 	**/
 	public static var isCygwin(default, null):Bool = isWindows && Sys.getEnv("QMAKESPEC") != null && Sys.getEnv("QMAKESPEC").indexOf("cygwin") > -1;
 
@@ -70,8 +70,8 @@ class Cli
 	public static var userDirectory(default, null):String = isWindows ? Sys.getEnv("USERPROFILE") : Sys.getEnv("HOME");
 
 	/**
-	The system temp directory.
-	*/
+		The system temp directory.
+	**/
 	public static var tempDirectory(default, null):String =
 	{
 		if (isWindows) Sys.getEnv("TEMP");
@@ -289,6 +289,20 @@ class Cli
 		});
 		return StringTools.trim(output);
 	}
+	
+	public static function cmdCompat(cmd:String, args:Array<String>, ?options:CmdOptions)
+	{
+		if (options == null) options = {};
+		var owd = Sys.getCwd();
+		if (options.workingDirectory != null)
+			setCwd(options.workingDirectory);
+		if (options.logCommand) Log.info('<action>$cmd</action> ' + args.join(' '));
+		else Log.verbose('<action>$cmd</action> ' + args.join(' '));
+		var code = Sys.command(cmd, args);
+		Sys.setCwd(owd);
+		if (code != 0)
+			throw new Error('Process <id>$cmd</id> exited with code <const>$code</const>');
+	}
 
 	public static function getExitCode(cmd:String, args:Array<String>)
 	{
@@ -505,6 +519,8 @@ class Cli
 		Assert.argumentNotNull(newPath, 'newPath');
 		Assert.isTrue(exists(path), '$ERROR_RENAME\n$REASON_PATH_NOT_EXIST', {path:path, newPath:newPath});
 		Assert.isTrue(!exists(newPath) || isFile(newPath), '$ERROR_RENAME\n$REASON_PATH_EXISTS_AND_NOT_FILE', {path:path, newPath:newPath, fullPath:fullPath(newPath)});
+		if (exists(newPath))
+			deleteFile(newPath);
 		createParentDirectory(newPath);
 		Log.verbose('<action>rename</action> <path>$path</path> to <path>$newPath</path>');
 		return FileSystem.rename(path, newPath);
