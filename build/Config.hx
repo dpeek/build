@@ -29,7 +29,7 @@ class Config
 		parent.set(keys[0], value);
 	}
 
-	public function getValue<T>(keyPath:String, ?orUseValue:T):T
+	public function getValue<T>(keyPath:String, ?orUseValue:T, ?resolveValue:Bool=true):T
 	{
 		var keys = keyPath.split('.');
 		var value = config;
@@ -51,7 +51,8 @@ class Config
 				throw new Error('Value $keyPath not found in config and no default provided.');
 			return orUseValue;
 		}
-		return resolve(value);
+		if (resolveValue) return resolve(value);
+		else return cast value;
 	}
 
 	public function resolveString(value:String):Dynamic
@@ -82,7 +83,7 @@ class Config
 
 	public function setScheme(name:String)
 	{
-		setValues(getValue('scheme.$name', new OrderedMap()));
+		setValues(getValue('scheme.$name', new OrderedMap(), false));
 	}
 
 	public function resolve(value:Dynamic):Dynamic
