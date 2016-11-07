@@ -188,6 +188,18 @@ class Target
 			Cli.download(http, zipPath);
 			Cli.unzip(zipPath, dir);
 			Cli.deleteFile(zipPath);
+
+			// The filename is going to be something like closure-compiler-v20161024 now
+			// So rename it to compiler.jar
+			var ls = Cli.readDirectory(dir);
+			for (filename in ls)
+			{
+				if (filename.indexOf("closure-compiler") == 0)
+				{
+					Cli.rename(dir + '/' + filename, bin);
+					break;
+				}
+			}
 		}
 
 		var outputPath = Path.withExtension(path, 'min.js');
